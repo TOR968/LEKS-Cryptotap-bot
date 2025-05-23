@@ -11,7 +11,7 @@ import { generateHeaders } from "./utils/headerManager";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import UserAgentManager from "./utils/userAgentManager";
 
-const config = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json"), "utf-8"));
+const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "config.json"), "utf-8"));
 
 const userAgentManager = new UserAgentManager();
 

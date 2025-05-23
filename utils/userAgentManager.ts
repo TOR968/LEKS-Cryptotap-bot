@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import * as path from "path";
 import * as querystring from "querystring";
 
 class UserAgentManager {
@@ -7,9 +8,9 @@ class UserAgentManager {
     private userAgentsListFile: string;
 
     constructor(
-        tokensFile: string = "data.txt",
-        userAgentsFile: string = "user_agents.json",
-        userAgentsListFile: string = "./utils/user_agents_list.txt"
+        tokensFile: string = path.join(process.cwd(), "data.txt"),
+        userAgentsFile: string = path.join(process.cwd(), "user_agents.json"),
+        userAgentsListFile: string = path.join(process.cwd(), "utils", "user_agents_list.txt")
     ) {
         this.tokensFile = tokensFile;
         this.userAgentsFile = userAgentsFile;
