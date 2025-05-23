@@ -7,7 +7,8 @@
         "ws": "^8.18.2"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && npm run copy-files",
+        "copy-files": "powershell -Command \"Copy-Item -Path ./config.json,./data.txt,./proxy.txt,./user_agents.json -Destination ./dist\"",
         "start": "node dist/index.js",
         "dev": "ts-node index.ts"
     },
