@@ -1,0 +1,19 @@
+{
+    "dependencies": {
+        "@types/ws": "^8.18.1",
+        "axios": "^1.8.4",
+        "https-proxy-agent": "^7.0.6",
+        "socks-proxy-agent": "^8.0.5",
+        "ws": "^8.18.2"
+    },
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "dev": "ts-node index.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^20.8.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.2.2"
+    }
+}

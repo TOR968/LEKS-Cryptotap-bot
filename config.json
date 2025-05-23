@@ -1,0 +1,13 @@
+{
+    "useProxy": true,
+    "runIntervalHours": 6,
+    "baseURL": "https://leks.space/api",
+    "registerEndpoint": "/auth/register",
+    "loginEndpoint": "/auth/login",
+    "profileEndpoint": "/user/profile",
+    "dailyRewardEndpoint": "/daily-rewards",
+    "dailyRewardClaimEndpoint": "/daily-rewards/user/give",
+    "socketEndpoint": "wss://socket.leks.space:8001",
+    "dataList": "data.txt",
+    "proxyList": "proxy.txt"
+}
