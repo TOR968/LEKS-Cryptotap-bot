@@ -9,8 +9,11 @@ import { scheduleNextRun } from "./utils/schedule";
 import sleep from "./utils/sleep";
 import { generateHeaders } from "./utils/headerManager";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import UserAgentManager from "./utils/userAgentManager";
 
 const config = JSON.parse(fs.readFileSync(path.join(__dirname, "config.json"), "utf-8"));
+
+const userAgentManager = new UserAgentManager();
 
 if (!config.socketEndpoint) {
     config.socketEndpoint = "wss://socket.leks.space:8001";
@@ -89,6 +92,7 @@ function readProxiesFromFile(filePath: string): string[] {
 async function registerUser(userData: UserData, proxy: string | null): Promise<boolean> {
     try {
         const userAgent =
+            userAgentManager.getUserAgent(userData.hash) ||
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
         const headers = generateHeaders(userAgent);
 
@@ -134,6 +138,7 @@ async function registerUser(userData: UserData, proxy: string | null): Promise<b
 async function loginUser(userData: UserData, proxy: string | null): Promise<string | null> {
     try {
         const userAgent =
+            userAgentManager.getUserAgent(userData.hash) ||
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
         const headers = generateHeaders(userAgent);
 
@@ -182,6 +187,7 @@ async function claimDailyReward(
 ): Promise<boolean> {
     try {
         const userAgent =
+            userAgentManager.getUserAgent(userData.hash) ||
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
         const headers = generateHeaders(userAgent);
 
@@ -238,6 +244,7 @@ async function claimDailyReward(
 async function getUserProfile(userData: UserData, token: string, proxy: string | null): Promise<ApiResponse | null> {
     try {
         const userAgent =
+            userAgentManager.getUserAgent(userData.hash) ||
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
         const headers = generateHeaders(userAgent);
 
