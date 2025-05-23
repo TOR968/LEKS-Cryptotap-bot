@@ -8,7 +8,7 @@
     },
     "scripts": {
         "build": "tsc && npm run copy-files",
-        "copy-files": "powershell -Command \"Copy-Item -Path ./config.json,./data.txt,./proxy.txt,./user_agents.json -Destination ./dist\"",
+        "copy-files": "node -e \"const fs=require('fs'); const path=require('path'); ['config.json','data.txt','proxy.txt','user_agents.json'].forEach(file => { try { fs.copyFileSync(file, path.join('dist', file)); console.log(`Copied ${file} to dist`); } catch(err) { console.error(`Error copying ${file}:`, err); } });\"",
         "start": "node dist/index.js",
         "dev": "ts-node index.ts"
     },
