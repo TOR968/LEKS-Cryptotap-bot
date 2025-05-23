@@ -1,13 +1,13 @@
 # LEKS-Cryptotap-bot
 
-## ✅ Features
-
-✅ Automatic tapping
-✅ Automatic daily rewards collection
-✅ Multiple account support
-✅ Proxy support (SOCKS/HTTP)
-✅ User-Agent rotation
-✅ Scheduled runs
+| ✅  | Feature                     |
+| --- | ---------------------------------|
+| ✅ | Automatic tapping                  |
+| ✅ | Automatic daily rewards collection |
+| ✅ | Multiple account support           |
+| ✅ | Proxy support (SOCKS/HTTP)         |
+| ✅ | User-Agent rotation                |
+| ✅ | Scheduled runs                     |
 
 ## For suggestions or to report a bug, please contact [telegram](https://t.me/tor_dev)
 
