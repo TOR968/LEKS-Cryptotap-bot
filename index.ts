@@ -275,6 +275,45 @@ async function getUserProfile(userData: UserData, token: string, proxy: string |
     }
 }
 
+async function activateFullEnergyBooster(userData: UserData, token: string, proxy: string | null): Promise<boolean> {
+    try {
+        const userAgent =
+            userAgentManager.getUserAgent(userData.hash) ||
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
+        const headers = generateHeaders(userAgent);
+
+        headers.Origin = "https://view.leks.space";
+        headers.Referer = "https://view.leks.space/";
+        headers.Authorization = `Bearer ${token}`;
+
+        const requestConfig: AxiosRequestConfig = {
+            headers: headers as any,
+            httpsAgent: getProxyAgent(proxy, userData.telegramId),
+        };
+
+        logWithColor(userData.username, "Activating full-energy booster...", "info");
+
+        const response = await axios.post(`${config.baseURL}${config.boosterFullEnergyEndpoint}`, {}, requestConfig);
+
+        if (response.data?.success) {
+            logWithColor(userData.username, `Full-energy booster activated successfully`, "success");
+            return true;
+        } else {
+            logWithColor(
+                userData.username,
+                `Failed to activate full-energy booster: ${response.data?.message || "Unknown error"}`,
+                "warning"
+            );
+            return false;
+        }
+    } catch (error) {
+        const errorMessage =
+            (error as any).response?.data?.error || (error as any).response?.data?.message || (error as Error).message;
+        logWithColor(userData.username, `Error activating full-energy booster: ${errorMessage}`, "error");
+        return false;
+    }
+}
+
 async function connectToWebSocket(userData: UserData, uuid: string, proxy: string | null): Promise<WebSocket | null> {
     try {
         const wsUrl = `${config.socketEndpoint}/${uuid}`;
@@ -410,6 +449,55 @@ async function processUser(userData: UserData, proxy: string | null): Promise<vo
             const ws = await connectToWebSocket(userData, profile.uuid, proxy);
             if (ws) {
                 await performTaps(userData, ws, profile.energy, profile.coins_per_tap);
+
+                if (profile.boosters && profile.boosters["full-energy"]) {
+                    const fullEnergyBooster = profile.boosters["full-energy"];
+
+                    if (
+                        fullEnergyBooster.current_booster_count > 0 &&
+                        fullEnergyBooster.remaining_recharge_hours === 0 &&
+                        fullEnergyBooster.remaining_recharge_minutes === 0 &&
+                        fullEnergyBooster.remaining_recharge_seconds === 0
+                    ) {
+                        logWithColor(userData.username, "Full-energy booster available, activating...", "info");
+
+                        await sleep(getRandomNumber(1000, 2000));
+
+                        const activationSuccess = await activateFullEnergyBooster(userData, token, proxy);
+
+                        if (activationSuccess) {
+                            await sleep(getRandomNumber(1000, 2000));
+
+                            const updatedProfile = await getUserProfile(userData, token, proxy);
+                            if (updatedProfile && updatedProfile.uuid && updatedProfile.energy) {
+                                await sleep(getRandomNumber(1000, 2000));
+
+                                const newWs = await connectToWebSocket(userData, updatedProfile.uuid, proxy);
+                                if (newWs) {
+                                    await performTaps(
+                                        userData,
+                                        newWs,
+                                        updatedProfile.energy,
+                                        updatedProfile.coins_per_tap
+                                    );
+                                } else {
+                                    logWithColor(
+                                        userData.username,
+                                        "Failed to establish WebSocket connection after booster activation",
+                                        "error"
+                                    );
+                                }
+                            }
+                        }
+                    } else {
+                        logWithColor(
+                            userData.username,
+                            `Full-energy booster not available: count=${fullEnergyBooster.current_booster_count}, ` +
+                                `recharge time=${fullEnergyBooster.remaining_recharge_hours}h ${fullEnergyBooster.remaining_recharge_minutes}m ${fullEnergyBooster.remaining_recharge_seconds}s`,
+                            "info"
+                        );
+                    }
+                }
             } else {
                 logWithColor(userData.username, "Failed to establish WebSocket connection", "error");
             }
