@@ -4,6 +4,7 @@
 | --- | ---------------------------------|
 | ✅ | Automatic tapping                  |
 | ✅ | Automatic daily rewards collection |
+| ✅ | Automatic recharging               |
 | ✅ | Multiple account support           |
 | ✅ | Proxy support (SOCKS/HTTP)         |
 | ✅ | User-Agent rotation                |
