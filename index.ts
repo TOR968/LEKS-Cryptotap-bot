@@ -89,27 +89,42 @@ function readProxiesFromFile(filePath: string): string[] {
     }
 }
 
+function getUserAgent(hash: string): string {
+    return (
+        userAgentManager.getUserAgent(hash) ||
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
+    );
+}
+
+function getRequestHeaders(userAgent: string, token?: string): Record<string, string> {
+    const headers = generateHeaders(userAgent);
+    headers.Origin = "https://view.leks.space";
+    headers.Referer = "https://view.leks.space/";
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers as any;
+}
+
+function getAxiosConfig(
+    userAgent: string,
+    telegramId: string,
+    token?: string,
+    proxy?: string | null
+): AxiosRequestConfig {
+    return {
+        headers: getRequestHeaders(userAgent, token),
+        httpsAgent: getProxyAgent(proxy ?? null, telegramId),
+    };
+}
+
 async function registerUser(userData: UserData, proxy: string | null): Promise<boolean> {
     try {
-        const userAgent =
-            userAgentManager.getUserAgent(userData.hash) ||
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
-        const headers = generateHeaders(userAgent);
-
-        headers.Origin = "https://view.leks.space";
-        headers.Referer = "https://view.leks.space/";
-
-        const requestConfig: AxiosRequestConfig = {
-            headers: headers as any,
-            httpsAgent: getProxyAgent(proxy, userData.telegramId),
-        };
+        const userAgent = getUserAgent(userData.hash);
+        const requestConfig = getAxiosConfig(userAgent, userData.telegramId, undefined, proxy);
 
         const requestBody = {
             hash: userData.hash,
             message: {
-                chat: {
-                    id: parseInt(userData.telegramId),
-                },
+                chat: { id: parseInt(userData.telegramId) },
                 from: {
                     id: parseInt(userData.telegramId),
                     first_name: userData.firstName,
@@ -122,11 +137,8 @@ async function registerUser(userData: UserData, proxy: string | null): Promise<b
         };
 
         logWithColor(userData.username, "Registering user...", "registration");
-
         const response = await axios.post(`${config.baseURL}${config.registerEndpoint}`, requestBody, requestConfig);
-
         logWithColor(userData.username, `Registration successful: ${JSON.stringify(response.data)}`, "success");
-
         return true;
     } catch (error) {
         const errorMessage = (error as any).response?.data?.message || (error as Error).message;
@@ -137,23 +149,10 @@ async function registerUser(userData: UserData, proxy: string | null): Promise<b
 
 async function loginUser(userData: UserData, proxy: string | null): Promise<string | null> {
     try {
-        const userAgent =
-            userAgentManager.getUserAgent(userData.hash) ||
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
-        const headers = generateHeaders(userAgent);
+        const userAgent = getUserAgent(userData.hash);
+        const requestConfig = getAxiosConfig(userAgent, userData.telegramId, undefined, proxy);
 
-        headers.Origin = "https://view.leks.space";
-        headers.Referer = "https://view.leks.space/";
-
-        const requestConfig: AxiosRequestConfig = {
-            headers: headers as any,
-            httpsAgent: getProxyAgent(proxy, userData.telegramId),
-        };
-
-        const requestBody = {
-            hash: userData.hash,
-        };
-
+        const requestBody = { hash: userData.hash };
         logWithColor(userData.username, "Logging in user...", "info");
 
         const response = await axios.post(
@@ -176,29 +175,10 @@ async function loginUser(userData: UserData, proxy: string | null): Promise<stri
     }
 }
 
-async function claimDailyReward(
-    userData: {
-        telegramId: string;
-        username: string;
-        hash: string;
-    },
-    token: string,
-    proxy: string | null
-): Promise<boolean> {
+async function claimDailyReward(userData: UserData, token: string, proxy: string | null): Promise<boolean> {
     try {
-        const userAgent =
-            userAgentManager.getUserAgent(userData.hash) ||
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
-        const headers = generateHeaders(userAgent);
-
-        headers.Origin = "https://view.leks.space";
-        headers.Referer = "https://view.leks.space/";
-        headers.Authorization = `Bearer ${token}`;
-
-        const requestConfig: AxiosRequestConfig = {
-            headers: headers as any,
-            httpsAgent: getProxyAgent(proxy, userData.telegramId),
-        };
+        const userAgent = getUserAgent(userData.hash);
+        const requestConfig = getAxiosConfig(userAgent, userData.telegramId, token, proxy);
 
         logWithColor(userData.username, "Checking daily rewards...", "info");
         const rewardsResponse = await axios.get(`${config.baseURL}${config.dailyRewardEndpoint}`, requestConfig);
@@ -243,22 +223,10 @@ async function claimDailyReward(
 
 async function getUserProfile(userData: UserData, token: string, proxy: string | null): Promise<ApiResponse | null> {
     try {
-        const userAgent =
-            userAgentManager.getUserAgent(userData.hash) ||
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
-        const headers = generateHeaders(userAgent);
-
-        headers.Origin = "https://view.leks.space";
-        headers.Referer = "https://view.leks.space/";
-        headers.Authorization = `Bearer ${token}`;
-
-        const requestConfig: AxiosRequestConfig = {
-            headers: headers as any,
-            httpsAgent: getProxyAgent(proxy, userData.telegramId),
-        };
+        const userAgent = getUserAgent(userData.hash);
+        const requestConfig = getAxiosConfig(userAgent, userData.telegramId, token, proxy);
 
         logWithColor(userData.username, "Getting user profile...", "info");
-
         const response = await axios.get(`${config.baseURL}${config.profileEndpoint}`, requestConfig);
 
         logWithColor(
@@ -266,7 +234,6 @@ async function getUserProfile(userData: UserData, token: string, proxy: string |
             `Profile received: ID=${response.data.id}, Balance=${response.data.coin_balance}`,
             "success"
         );
-
         return response.data;
     } catch (error) {
         const errorMessage = (error as any).response?.data?.message || (error as Error).message;
@@ -277,22 +244,10 @@ async function getUserProfile(userData: UserData, token: string, proxy: string |
 
 async function activateFullEnergyBooster(userData: UserData, token: string, proxy: string | null): Promise<boolean> {
     try {
-        const userAgent =
-            userAgentManager.getUserAgent(userData.hash) ||
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0";
-        const headers = generateHeaders(userAgent);
-
-        headers.Origin = "https://view.leks.space";
-        headers.Referer = "https://view.leks.space/";
-        headers.Authorization = `Bearer ${token}`;
-
-        const requestConfig: AxiosRequestConfig = {
-            headers: headers as any,
-            httpsAgent: getProxyAgent(proxy, userData.telegramId),
-        };
+        const userAgent = getUserAgent(userData.hash);
+        const requestConfig = getAxiosConfig(userAgent, userData.telegramId, token, proxy);
 
         logWithColor(userData.username, "Activating full-energy booster...", "info");
-
         const response = await axios.post(`${config.baseURL}${config.boosterFullEnergyEndpoint}`, {}, requestConfig);
 
         if (response.data?.success) {
